@@ -32,8 +32,7 @@ def save_annotations(annotations):
     with open(ANNOTATIONS_FILE, 'w') as f:
         json.dump(annotations, f, indent=2)
 
-# Routes
-
+# Routes 
 @app.route('/')
 def index():
     """Serve the main page"""

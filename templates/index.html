@@ -602,9 +602,9 @@
                             <textarea id="reasoning" placeholder="Explain why this segment is flagged..."></textarea>
                         </div>
 
-                        <div class="button-group">
+                        <div class="button-group hidden">
                             <button type="submit" class="btn-primary">Save Annotation</button>
-                        </div>
+                        </div> 
                     </form>
                 </div>
             </div>
@@ -618,7 +618,7 @@
     <script>
         const taxonomy = {
             "Technical": [
-                "Audio Issues",
+                "Audio Issues", 
                 "Video Issues",
                 "Connectivity Issues",
                 "Screen Sharing Problems"
@@ -825,27 +825,23 @@
             `).join('');
         }
 
-        function selectSubcategory(category, subcategory, button) {
+        async function selectSubcategory(category, subcategory, button) {
             // Deselect all buttons across all categories
             document.querySelectorAll('.subcategory-options button').forEach(btn => btn.classList.remove('selected'));
             // Select clicked button
             button.classList.add('selected');
+
+            await saveAnnotation(category, subcategory);
         }
 
-        document.getElementById('annotationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        async function saveAnnotation(category, subcategory) {
+            if (currentSegment === null) return;
             
             const seg = segments[currentSegment];
-            const selectedButton = document.querySelector('.subcategory-options button.selected');
             
-            if (!selectedButton) {
-                alert('Please select a category');
-                return;
-            }
-
             const annotation = {
-                category: selectedButton.dataset.category,
-                subcategory: selectedButton.dataset.value,
+                category: category,
+                subcategory: subcategory,
                 reasoning: document.getElementById('reasoning').value
             };
 
@@ -869,6 +865,25 @@
                 console.error('Error saving annotation:', error);
                 alert('Error saving annotation');
             }
+        }
+
+        document.getElementById('annotationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const selectedButton = document.querySelector('.subcategory-options button.selected');
+            
+            if (!selectedButton) {
+                alert('Please select a category');
+                return;
+            }
+
+            const annotation = {
+                category: selectedButton.dataset.category,
+                subcategory: selectedButton.dataset.value,
+                reasoning: document.getElementById('reasoning').value
+            };
+
+            await saveAnnotation(selectedButton.dataset.category, selectedButton.dataset.value);
         });
 
         function updateStats() {
