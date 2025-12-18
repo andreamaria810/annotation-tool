@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcript Annotation Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .breadcrumb {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-guidelines {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-guidelines:hover {
+            background: #5a6fd6;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            max-width: 800px;
+            max-height: 80vh;
+            width: 90%;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(80vh - 70px);
+        }
+
+        .modal-body h3 {
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .modal-body h3:first-child {
+            margin-top: 0;
+        }
+
+        .modal-body p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .modal-body ul {
+            color: #666;
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .modal-body li {
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+
+        .category-description {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .category-description h4 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .category-description p {
+            margin-bottom: 0;
+        }
+
+        /* Lesson Selection View */
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .lesson-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .lesson-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .lesson-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .lesson-progress {
+            background: #f0f0f0;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .lesson-progress-bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        /* Segments View */
+        .segments-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .segments-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .segment-item {
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .segment-item:hover {
+            background: #f9f9f9;
+        }
+
+        .segment-item.active {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding-left: 12px;
+        }
+
+        .segment-item.annotated::after {
+            content: '✓';
+            float: right;
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .segment-speaker {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .segment-time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .segment-text {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* Annotation Form */
+        .annotation-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .annotation-panel h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        .form-section h4 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .category-group {
+            margin-bottom: 15px;
+        }
+
+        .category-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .subcategory-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-left: 0;
+        }
+
+        .subcategory-options button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .subcategory-options button:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .subcategory-options button.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-export {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-export:hover {
+            opacity: 0.9;
+        }
+
+        .btn-no-issues {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 2px solid #4caf50;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .btn-no-issues:hover {
+            background: #4caf50;
+            color: white;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .lessons-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .annotation-panel {
+                margin-top: 0;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header id="header">
+            <div class="header-left">
+                <h1>Transcript Annotation Tool</h1>
+                <div class="breadcrumb" id="breadcrumb">
+                    <a onclick="goToLessons()">Lessons</a>
+                </div>
+            </div>
+            <button class="btn-guidelines" onclick="openGuidelines()">📖 Annotation Guidelines</button>
+        </header>
+
+        <!-- Guidelines Modal -->
+        <div class="modal-overlay" id="guidelinesModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Annotation Guidelines</h2>
+                    <button class="modal-close" onclick="closeGuidelines()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <h3>Overview</h3>
+                    <p>Your task is to review each segment of the tutoring session transcript and identify any issues that may need attention. For each segment, either mark it as "No Issues" or select the appropriate category.</p>
+
+                    <h3>How to Annotate</h3>
+                    <ul>
+                        <li><strong>Read each segment carefully</strong> - Consider the context of the conversation</li>
+                        <li><strong>If no issues are present</strong> - Click "No Issues - Skip to Next"</li>
+                        <li><strong>If an issue exists</strong> - Select the appropriate category and subcategory, then add reasoning</li>
+                        <li><strong>Use the Reasoning field</strong> - Briefly explain why you flagged this segment</li>
+                    </ul>
+
+                    <h3>Temporal Boundary Rule</h3>
+                    <ul>
+                        <li>Identify the start and end timestamps of each issue</li>
+                        <li>Flag ALL utterances (neutral or explicit) that fall within that span</li>
+                        <li>Include 1-2 utterances of context before/after if available</li>
+                        <li>Rationale: Helps model learn temporal coherence, not just keyword matching</li>
+                    </ul>
+                    
+                    <h4>Example:</h4>
+                    <p>
+                        <strong>Scenario:</strong> Audio connectivity issue from 05:30 to 12:45<br>
+                        <strong>What to flag:</strong>
+                    </p>
+                    <ul>
+                        <li>05:28 - "Can you hear me?" (context before)</li>
+                        <li>05:30 - "Your audio is cutting out" (explicit issue)</li>
+                        <li>05:37 - "Oh, no!" (neutral, but within issue timespan)</li>
+                        <li>05:45 - "Hello?" (neutral, but within issue timespan)</li>
+                        <li>06:18 - "Is it better now?" (neutral, but within issue timespan)</li>
+                        <li>06:27 - "Let me try reconnecting" (still within issue timespan)</li>
+                        <li>09:42 - "That fixed it, thanks" (end of issue)</li>
+                        <li>09:47 - "Now let's continue the lesson" (context after)</li>
+                    </ul>
+                    <p><strong>Why:</strong> Even "Is it better now?" or "Oh, no!" lack explicit problem language, but they're contextually dependent on the connectivity issue. Flagging the full span teaches the model to recognize temporal coherence.</p>
+
+
+
+                    <h3>Categories</h3>
+
+                    <div class="category-description">
+                        <h4>Technical</h4>
+                        <p>Audio/video problems, connectivity issues, screen sharing failures. Flag when technical issues disrupt the lesson.</p>
+                    </div>
+
+                    <div class="category-description">
+                        <h4>Policy</h4>
+                        <p>Violations of platform rules: sharing personal contact info, discussing other clients, over-promising results, requesting payment outside the platform, academic dishonesty, or other unethical behavior.</p>
+                    </div>
+
+                    <div class="category-description">
+                        <h4>Quality</h4>
+                        <p>Teaching quality concerns: tutor talking too much without engagement, lack of interaction, knowledge gaps, going off-topic, providing incorrect information, or student not understanding the material.</p>
+                    </div>
+
+                    <div class="category-description">
+                        <h4>Safety</h4>
+                        <p>Inappropriate language, references to illegal activities, or anything that creates an unsafe environment.</p>
+                    </div>
+
+                    <div class="category-description">
+                        <h4>Behavior</h4>
+                        <p>Student-related issues: arriving late, not completing homework, excessive parent involvement during the session.</p>
+                    </div>
+
+                    <div class="category-description">
+                        <h4>Admin</h4>
+                        <p>Administrative matters: discussions about refunds, payment adjustments, or rescheduling sessions.</p>
+                    </div>
+
+                    <div class="category-description">
+                        <h4>Other</h4>
+                        <p>Anything noteworthy that doesn't fit the above categories. Always explain in the Reasoning field.</p>
+                    </div>
+
+                    <h3>Tips</h3>
+                    <ul>
+                        <li>When in doubt, flag it and explain your uncertainty in the Reasoning field</li>
+                        <li>Context matters - a word might be fine in one context but problematic in another</li>
+                        <li>Be consistent in your annotations across all segments</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lessons View -->
+        <div id="lessonsView" class="lessons-grid"></div>
+
+        <!-- Segments View -->
+        <div id="segmentsView" class="hidden">
+            <div class="stats" id="stats"></div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="segments-container">
+                    <div class="segments-list" id="segmentsList"></div>
+                </div>
+
+                <div class="annotation-panel">
+                    <div id="currentSegmentDisplay"></div>
+                    
+                    <form id="annotationForm" class="hidden" style="margin-top: 20px;">
+                        <!-- Quick No Issues Button -->
+                        <div class="form-section">
+                            <button type="button" class="btn-no-issues" onclick="markNoIssues()">✓ No Issues - Skip to Next</button>
+                        </div>
+                        
+                        <div style="text-align: center; color: #999; margin: 15px 0;">— or select an issue below —</div>
+
+                        <!-- Risk Categories will be dynamically inserted here -->
+                        <div id="categoriesContainer"></div>
+                        
+                        <div class="form-section">
+                            <h4>Reasoning</h4>
+                            <textarea id="reasoning" placeholder="Explain why this segment is flagged..."></textarea>
+                        </div>
+
+                        <div class="button-group">
+                            <button type="submit" class="btn-primary">Save Annotation</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="btn-export" onclick="exportAnnotations()">Export Annotations</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const taxonomy = {
+            "Technical": [
+                "Audio Issues",
+                "Video Issues",
+                "Connectivity Issues",
+                "Screen Sharing Problems"
+            ],
+            "Policy": [
+                "Sharing Personal Info",
+                "Discussing Other Clients",
+                "Over-Promising",
+                "Payment Outside Platform",
+                "Academic Dishonesty",
+                "Unethical Behavior"
+            ],
+            "Quality": [
+                "Tutor Monologue",
+                "Lack of Engagement",
+                "Tutor Knowledge Gaps",
+                "Off-Topic Discussion",
+                "Factually Incorrect Information",
+                "Not Understanding Material"
+            ],
+            "Safety": [
+                "Inappropriate Language",
+                "Illegal Activities"
+            ],
+            "Behavior": [
+                "Student Late",
+                "Homework Non-Completion",
+                "Parent Over-Involvement"
+            ],
+            "Admin": [
+                "Payment Adjustments",
+                "Session Rescheduling"
+            ],
+            "Other": [
+                "Other"
+            ]
+        };
+
+        let currentLesson = null;
+        let currentSegment = null;
+        let lessons = [];
+        let segments = [];
+
+        // Guidelines modal functions
+        function openGuidelines() {
+            document.getElementById('guidelinesModal').classList.add('active');
+        }
+
+        function closeGuidelines() {
+            document.getElementById('guidelinesModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('guidelinesModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGuidelines();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeGuidelines();
+            }
+        });
+
+        async function markNoIssues() {
+            if (currentSegment === null) return;
+            
+            const seg = segments[currentSegment];
+            const annotation = {
+                category: null,
+                subcategory: 'None',
+                reasoning: ''
+            };
+
+            try {
+                await fetch(`/api/annotation/${currentLesson}/${seg.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(annotation)
+                });
+
+                seg.annotation = annotation;
+                seg.is_annotated = true;
+                renderSegments();
+                updateStats();
+                
+                // Move to next segment
+                if (currentSegment < segments.length - 1) {
+                    selectSegment(currentSegment + 1);
+                }
+            } catch (error) {
+                console.error('Error saving annotation:', error);
+                alert('Error saving annotation');
+            }
+        }
+
+        async function init() {
+            await loadLessons();
+        }
+
+        async function loadLessons() {
+            try {
+                const response = await fetch('/api/lessons');
+                lessons = await response.json();
+                renderLessons();
+            } catch (error) {
+                console.error('Error loading lessons:', error);
+                alert('Error loading lessons. Make sure the Flask server is running.');
+            }
+        }
+
+        function renderLessons() {
+            const grid = document.getElementById('lessonsView');
+            grid.innerHTML = lessons.map(lesson => `
+                <div class="lesson-card" onclick="selectLesson('${lesson.id}')">
+                    <h3>${lesson.name}</h3>
+                    <p>${lesson.segment_count} segments</p>
+                    <div class="lesson-progress">
+                        <div class="lesson-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <small style="color: #999;">Click to start annotating</small>
+                </div>
+            `).join('');
+        }
+
+        async function selectLesson(lessonId) {
+            currentLesson = lessonId;
+            try {
+                const response = await fetch(`/api/lesson/${lessonId}`);
+                const data = await response.json();
+                segments = data.segments;
+                renderSegments();
+                showSegmentsView();
+                updateStats();
+                renderCategories();
+            } catch (error) {
+                console.error('Error loading segments:', error);
+            }
+        }
+
+        function renderSegments() {
+            const list = document.getElementById('segmentsList');
+            list.innerHTML = segments.map((seg, idx) => `
+                <div class="segment-item ${seg.is_annotated ? 'annotated' : ''}" onclick="selectSegment(${idx})">
+                    <div class="segment-header">
+                        <span class="segment-speaker">${seg.speaker}</span>
+                        <span class="segment-time">${seg.start_time}</span>
+                    </div>
+                    <div class="segment-text">${seg.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectSegment(idx) {
+            currentSegment = idx;
+            const seg = segments[idx];
+
+            // Update UI
+            document.querySelectorAll('.segment-item').forEach((el, i) => {
+                el.classList.toggle('active', i === idx);
+            });
+
+            // Display current segment
+            const display = document.getElementById('currentSegmentDisplay');
+            display.innerHTML = `
+                <div>
+                    <strong>${seg.speaker}</strong> (${seg.start_time})
+                    <p style="margin-top: 10px; color: #666;">${seg.text}</p>
+                </div>
+            `;
+
+            // Load existing annotation if present
+            const annotationForm = document.getElementById('annotationForm');
+            if (seg.annotation) {
+                annotationForm.classList.remove('hidden');
+                document.getElementById('reasoning').value = seg.annotation.reasoning || '';
+                
+                // Restore category/subcategory selection
+                document.querySelectorAll('.subcategory-options button').forEach(btn => {
+                    btn.classList.toggle('selected', btn.dataset.value === seg.annotation.subcategory);
+                });
+            } else {
+                annotationForm.classList.remove('hidden');
+                document.getElementById('reasoning').value = '';
+                document.querySelectorAll('.subcategory-options button').forEach(btn => btn.classList.remove('selected'));
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = Object.entries(taxonomy).map(([category, subcats]) => `
+                <div class="form-section">
+                    <h4>${category}</h4>
+                    <div class="subcategory-options">
+                        ${subcats.map(subcat => `
+                            <button type="button" data-category="${category}" data-value="${subcat}" onclick="selectSubcategory('${category}', '${subcat}', this)">
+                                ${subcat}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectSubcategory(category, subcategory, button) {
+            // Deselect all buttons across all categories
+            document.querySelectorAll('.subcategory-options button').forEach(btn => btn.classList.remove('selected'));
+            // Select clicked button
+            button.classList.add('selected');
+        }
+
+        document.getElementById('annotationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const seg = segments[currentSegment];
+            const selectedButton = document.querySelector('.subcategory-options button.selected');
+            
+            if (!selectedButton) {
+                alert('Please select a category');
+                return;
+            }
+
+            const annotation = {
+                category: selectedButton.dataset.category,
+                subcategory: selectedButton.dataset.value,
+                reasoning: document.getElementById('reasoning').value
+            };
+
+            try {
+                await fetch(`/api/annotation/${currentLesson}/${seg.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(annotation)
+                });
+
+                seg.annotation = annotation;
+                seg.is_annotated = true;
+                renderSegments();
+                updateStats();
+                
+                // Move to next segment
+                if (currentSegment < segments.length - 1) {
+                    selectSegment(currentSegment + 1);
+                }
+            } catch (error) {
+                console.error('Error saving annotation:', error);
+                alert('Error saving annotation');
+            }
+        });
+
+        function updateStats() {
+            const annotated = segments.filter(s => s.is_annotated).length;
+            const total = segments.length;
+            const percentage = Math.round((annotated / total) * 100);
+
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Segments</div>
+                    <div class="stat-value">${total}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Annotated</div>
+                    <div class="stat-value">${annotated}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Progress</div>
+                    <div class="stat-value">${percentage}%</div>
+                </div>
+            `;
+        }
+
+        function showSegmentsView() {
+            document.getElementById('lessonsView').classList.add('hidden');
+            document.getElementById('segmentsView').classList.remove('hidden');
+            document.getElementById('breadcrumb').innerHTML = `
+                <a onclick="goToLessons()">Lessons</a> > <span>${lessons.find(l => l.id === currentLesson)?.name || currentLesson}</span>
+            `;
+        }
+
+        function goToLessons() {
+            currentLesson = null;
+            currentSegment = null;
+            document.getElementById('lessonsView').classList.remove('hidden');
+            document.getElementById('segmentsView').classList.add('hidden');
+            document.getElementById('breadcrumb').innerHTML = '<a onclick="goToLessons()">Lessons</a>';
+        }
+
+        async function exportAnnotations() {
+            try {
+                const response = await fetch('/api/export');
+                const data = await response.json();
+                
+                // Download as JSON
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `annotations_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                alert(`Exported ${data.length} annotations!`);
+            } catch (error) {
+                console.error('Error exporting:', error);
+                alert('Error exporting annotations');
+            }
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
