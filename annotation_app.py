@@ -45,7 +45,7 @@ def get_lessons():
     lessons = []
     for lesson_id, lesson_data in lesson_index.items():
         # Count annotated segments in this lesson
-        annnotated_count = sum(
+        annotated_count = sum(
             1 for seg in lesson_data['segments']
             if f"{lesson_id}_{seg['id']}" in annotations
         )
