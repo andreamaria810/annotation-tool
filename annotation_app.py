@@ -41,6 +41,7 @@ def index():
 @app.route('/api/lessons')
 def get_lessons():
     """Get list of all lessons"""
+    annotations = load_annotations()
     lessons = []
     for lesson_id, lesson_data in lesson_index.items():
         # Count annotated segments in this lesson
