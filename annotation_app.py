@@ -43,10 +43,16 @@ def get_lessons():
     """Get list of all lessons"""
     lessons = []
     for lesson_id, lesson_data in lesson_index.items():
+        # Count annotated segments in this lesson
+        annnotated_count = sum(
+            1 for seg in lesson_data['segments']
+            if f"{lesson_id}_{seg['id']}" in annotations
+        )
         lessons.append({
             'id': lesson_id,
             'name': lesson_data['name'],
-            'segment_count': lesson_data['segment_count']
+            'segment_count': lesson_data['segment_count'],
+            'annotated_count': annotated_count
         })
     return jsonify(lessons)
 
