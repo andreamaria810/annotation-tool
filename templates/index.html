@@ -504,33 +504,6 @@
                         <li><strong>Use the Reasoning field</strong> - Briefly explain why you flagged this segment</li>
                     </ul>
 
-                    <h3>Temporal Boundary Rule</h3>
-                    <ul>
-                        <li>Identify the start and end timestamps of each issue</li>
-                        <li>Flag ALL utterances (neutral or explicit) that fall within that span</li>
-                        <li>Include 1-2 utterances of context before/after if available</li>
-                        <li>Rationale: Helps model learn temporal coherence, not just keyword matching</li>
-                    </ul>
-                    
-                    <h4>Example:</h4>
-                    <p>
-                        <strong>Scenario:</strong> Audio connectivity issue from 05:30 to 12:45<br>
-                        <strong>What to flag:</strong>
-                    </p>
-                    <ul>
-                        <li>05:28 - "Can you hear me?" (context before)</li>
-                        <li>05:30 - "Your audio is cutting out" (explicit issue)</li>
-                        <li>05:37 - "Oh, no!" (neutral, but within issue timespan)</li>
-                        <li>05:45 - "Hello?" (neutral, but within issue timespan)</li>
-                        <li>06:18 - "Is it better now?" (neutral, but within issue timespan)</li>
-                        <li>06:27 - "Let me try reconnecting" (still within issue timespan)</li>
-                        <li>09:42 - "That fixed it, thanks" (end of issue)</li>
-                        <li>09:47 - "Now let's continue the lesson" (context after)</li>
-                    </ul>
-                    <p><strong>Why:</strong> Even "Is it better now?" or "Oh, no!" lack explicit problem language, but they're contextually dependent on the connectivity issue. Flagging the full span teaches the model to recognize temporal coherence.</p>
-
-
-
                     <h3>Categories</h3>
 
                     <div class="category-description">
@@ -567,6 +540,31 @@
                         <h4>Other</h4>
                         <p>Anything noteworthy that doesn't fit the above categories. Always explain in the Reasoning field.</p>
                     </div>
+
+                    <h3>Temporal Boundary Rule</h3>
+                    <ul>
+                        <li>Identify the start and end timestamps of each issue</li>
+                        <li>Flag ALL utterances (neutral or explicit) that fall within that span</li>
+                        <li>Include 1-2 utterances of context before/after if available</li>
+                        <li>Rationale: Helps model learn temporal coherence, not just keyword matching</li>
+                    </ul>
+                    
+                    <h4>Example:</h4>
+                    <p>
+                        <strong>Scenario:</strong> Audio connectivity issue from 05:30 to 12:45<br>
+                        <strong>What to flag:</strong>
+                    </p>
+                    <ul>
+                        <li>05:28 - "Can you hear me?" (context before)</li>
+                        <li>05:30 - "Your audio is cutting out" (explicit issue)</li>
+                        <li>05:37 - "Oh, no!" (neutral, but within issue timespan)</li>
+                        <li>05:45 - "Hello?" (neutral, but within issue timespan)</li>
+                        <li>06:18 - "Is it better now?" (neutral, but within issue timespan)</li>
+                        <li>06:27 - "Let me try reconnecting" (still within issue timespan)</li>
+                        <li>09:42 - "That fixed it, thanks" (end of issue)</li>
+                        <li>09:47 - "Now let's continue the lesson" (context after)</li>
+                    </ul>
+                    <p><strong>Why:</strong> Even "Is it better now?" or "Oh, no!" lack explicit problem language, but they're contextually dependent on the connectivity issue. Flagging the full span teaches the model to recognize temporal coherence.</p>
 
                     <h3>Tips</h3>
                     <ul>
