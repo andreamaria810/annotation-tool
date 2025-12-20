@@ -258,6 +258,13 @@
             font-size: 16px;
         }
 
+        .segment-reasoning-icon {
+            float: right;
+            margin-right: 25px;
+            color: #667eea;
+            font-size: 14px;
+        }
+
         .segment-header {
             display: flex;
             justify-content: space-between;
@@ -767,16 +774,20 @@
 
         function renderSegments() {
             const list = document.getElementById('segmentsList');
-            list.innerHTML = segments.map((seg, idx) => `
-                <div class="segment-item ${seg.is_annotated ? 'annotated' : ''}" onclick="selectSegment(${idx})">
-                    <div class="segment-header">
-                        <span class="segment-speaker">${seg.speaker}</span>
-                        <span class="segment-time">${seg.start_time}</span>
+            list.innerHTML = segments.map((seg, idx) => {
+                const hasReasoning = seg.annotation && seg.annotation.reasoning && seg.annotation.reasoning.trim() !== '';
+                return `
+                    <div class="segment-item ${seg.is_annotated ? 'annotated' : ''}" onclick="selectSegment(${idx})">
+                        <div class="segment-header">
+                            <span class="segment-speaker">${seg.speaker}</span>
+                            <span class="segment-time">${seg.start_time}</span>
+                        </div>
+                        <div class="segment-text">${seg.text}</div>
+                        ${hasReasoning ? '<span class="segment-reasoning-icon">💬</span>' : ''}
                     </div>
-                    <div class="segment-text">${seg.text}</div>
-                </div>
-            `).join('');
-        }
+                `;
+            }).join('');
+
 
         function selectSegment(idx) {
             currentSegment = idx;
